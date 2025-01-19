@@ -20,7 +20,7 @@ async fn route_to_service(
 ) -> Result<HttpResponse> {
     let service_urls = vec![
         ("profiles".to_string(),
-         env::var("FRIENDSHIP_SERVICE_URL").unwrap_or_else(|_| "http://localhost:8086".to_string()
+         env::var("PROFILE_SERVICE_URL").unwrap_or_else(|_| "http://localhost:8082".to_string()
          )),
         ("friendships".to_string(),
          env::var("FRIENDSHIP_SERVICE_URL").unwrap_or_else(|_| "http://localhost:8086".to_string()
