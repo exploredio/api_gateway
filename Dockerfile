@@ -7,7 +7,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY . .
 RUN cargo build --release
 
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 # Install dependencies required for running the binary
 RUN apt-get update && apt-get install -y \
