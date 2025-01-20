@@ -11,7 +11,7 @@ FROM debian:bullseye-slim
 
 # Install dependencies required for running the binary
 RUN apt-get update && apt-get install -y \
-    libssl-dev \
+    libssl3 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
