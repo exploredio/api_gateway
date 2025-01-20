@@ -126,6 +126,10 @@ async fn handle_service_response(response: Result<Response, Error>) -> Result<Ht
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
     let client = Client::new();
 
     HttpServer::new(move || {
