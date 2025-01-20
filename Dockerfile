@@ -2,6 +2,8 @@ FROM rust:1.84.0 as builder
 
 WORKDIR /usr/src/app
 
+RUN apt-get update && apt-get install -y libssl-dev
+
 COPY Cargo.toml Cargo.lock ./
 
 COPY . .
