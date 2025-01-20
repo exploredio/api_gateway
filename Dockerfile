@@ -2,8 +2,6 @@ FROM rust:1.84.0 as builder
 
 WORKDIR /usr/src/app
 
-RUN apt-get update && apt-get install -y libssl-dev
-
 COPY Cargo.toml Cargo.lock ./
 
 COPY . .
@@ -13,7 +11,7 @@ FROM debian:bullseye-slim
 
 # Install dependencies required for running the binary
 RUN apt-get update && apt-get install -y \
-    libssl1.1 \
+    openssl \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
