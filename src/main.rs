@@ -3,6 +3,9 @@ use reqwest::{Client, Response, StatusCode, Error};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::env;
+use std::sync::Arc;
+use actix_governor::{Governor, GovernorConfigBuilder, KeyExtractor, SimpleKeyExtractionError};
+use actix_web::dev::ServiceRequest;
 use actix_web::http::Method;
 use serde_json::Value;
 
@@ -124,16 +127,52 @@ async fn handle_service_response(response: Result<Response, Error>) -> Result<Ht
 }
 
 
+#[derive(Clone)]
+pub struct _KeyExtactor;
+impl _KeyExtactor {
+    fn new() -> Self {
+        _KeyExtactor
+    }
+}
+
+impl KeyExtractor for _KeyExtactor {
+    type Key = String;
+    type KeyExtractionError = SimpleKeyExtractionError<&'static str>;
+    fn extract(
+        &self,
+        req: &ServiceRequest,
+    ) -> Result<Self::Key, Self::KeyExtractionError> {
+        let head = req.head();
+        match head.headers().get("Authorization") {
+            Some(data) => Ok(data.to_str().unwrap().to_string()),
+            None => Err(SimpleKeyExtractionError::new("Can not find any token")),
+        }
+    }
+}
+
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
         .init();
 
+
     let client = Client::new();
+
+    // Rate limiting config, it replenished 5 tokens per second for each client/key with a burst size of 10
+    let governor_conf = Arc::new(Governor::new(
+        &GovernorConfigBuilder::default()
+            .key_extractor(_KeyExtactor::new())
+            .requests_per_second(5)
+            .burst_size(10)
+            .finish()
+            .unwrap(),
+    ));
 
     HttpServer::new(move || {
         App::new()
+            .wrap(governor_conf.clone())
             .app_data(web::Data::new(client.clone()))
             .route("/{service_name}", web::to(route_to_service)) // Dynamic routing for native service names
             .route("/{service_name}/{extra_path:.*}", web::to(route_to_service)) // Dynamic routing for extra paths after service name
